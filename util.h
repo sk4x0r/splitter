@@ -48,7 +48,7 @@ static int parseInt(B& in) {
 	else if (*in == '+')
 		++in;
 	if (*in < '0' || *in > '9')
-		fprintf(stderr, "PARSE ERROR! Unexpected char: %c\n", *in), exit(3);
+		fprintf(stderr, "PARSE ERROR in parseInt! Unexpected char: %c %d\n", *in,*in), exit(3);
 	while (*in >= '0' && *in <= '9')
 		val = val * 10 + (*in - '0'), ++in;
 	return neg ? -val : val;
@@ -63,28 +63,29 @@ static bool eagerMatch(B& in, const char* str) {
 }
 
 template<class B>
-static vector<int> readClause(B& in) {
-	vector<int> lits;
+static int* readClause(B& in) {
+	int* lits=(int*)malloc(3*sizeof(int));
 	cout << "inside readClause" << endl;
 	int parsed_lit;
-	lits.clear();
-	for (;;) {
+	for (int i=0;;i++) {
 		parsed_lit = parseInt(in);
 		cout << "parsed_lit=" << parsed_lit << endl;
 		if (parsed_lit == 0)
-			break;
+					break;
 		cout << "pushing " << parsed_lit << endl;
-		cout << "lits.size()=" << lits.size() << endl;
-		lits.push_back(parsed_lit);
+		lits[i]=parsed_lit;
 		cout << "pushed" << endl;
 	}
 	cout << "returning from readClause" << endl;
+	for(int i=0;i<3;i++)
+		cout<<lits[i]<<" ";
+	cout<<endl;
 	return lits;
 }
 
 template<class B>
 void dimacsToHypergraph(B& in, char* out) {
-	vector<int> lits; //TODO: initialize lits to size 3
+	int* lits; //TODO: initialize lits to size 3
 	vector<vector<int> > graph;
 	int vars = 0;
 	int clauses = 0;
@@ -115,7 +116,7 @@ void dimacsToHypergraph(B& in, char* out) {
 				cout << "vars=" << vars << endl << "clauses=" << clauses
 						<< endl;
 			} else {
-				printf("PARSE ERROR! Unexpected char: %c\n", *in), exit(3);
+				printf("PARSE ERROR in dimacsToHypergraph! Unexpected char: %c\n", *in), exit(3);
 			}
 		} else if (*in == 'c') {
 			skipLine(in);
@@ -123,9 +124,8 @@ void dimacsToHypergraph(B& in, char* out) {
 			cnt++;
 			cout << "reading clauses" << endl;
 			lits = readClause(in);
-			cout << "read " << lits.size() << " clauses" << endl;
 			cout << "size of graph=" << graph.size() << endl;
-			for (int i = 0; i < lits.size(); i++) {
+			for (int i = 0; i < 3; i++) {
 				int idx = lits[i];
 				if (idx < 0) {
 					idx = -1 * idx;
