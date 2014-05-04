@@ -12,6 +12,7 @@
 #include<cstdio>
 #include<vector>
 #include<iostream>
+#include <fstream>
 using namespace std;
 
 template<class B>
@@ -48,7 +49,8 @@ static int parseInt(B& in) {
 	else if (*in == '+')
 		++in;
 	if (*in < '0' || *in > '9')
-		fprintf(stderr, "PARSE ERROR in parseInt! Unexpected char: %c %d\n", *in,*in), exit(3);
+		fprintf(stderr, "PARSE ERROR in parseInt! Unexpected char: %c %d\n",
+				*in, *in), exit(3);
 	while (*in >= '0' && *in <= '9')
 		val = val * 10 + (*in - '0'), ++in;
 	return neg ? -val : val;
@@ -63,29 +65,28 @@ static bool eagerMatch(B& in, const char* str) {
 }
 
 template<class B>
-static int* readClause(B& in) {
-	int* lits=(int*)malloc(3*sizeof(int));
+static vector<int> readClause(B& in) {
+	vector<int> lits;
 	cout << "inside readClause" << endl;
 	int parsed_lit;
-	for (int i=0;;i++) {
+	lits.clear();
+	for (;;) {
 		parsed_lit = parseInt(in);
 		cout << "parsed_lit=" << parsed_lit << endl;
 		if (parsed_lit == 0)
-					break;
+			break;
 		cout << "pushing " << parsed_lit << endl;
-		lits[i]=parsed_lit;
+		cout << "lits.size()=" << lits.size() << endl;
+		lits.push_back(parsed_lit);
 		cout << "pushed" << endl;
 	}
 	cout << "returning from readClause" << endl;
-	for(int i=0;i<3;i++)
-		cout<<lits[i]<<" ";
-	cout<<endl;
 	return lits;
 }
 
 template<class B>
 void dimacsToHypergraph(B& in, char* out) {
-	int* lits; //TODO: initialize lits to size 3
+	vector<int> lits; //TODO: initialize lits to size 3
 	vector<vector<int> > graph;
 	int vars = 0;
 	int clauses = 0;
@@ -116,7 +117,9 @@ void dimacsToHypergraph(B& in, char* out) {
 				cout << "vars=" << vars << endl << "clauses=" << clauses
 						<< endl;
 			} else {
-				printf("PARSE ERROR in dimacsToHypergraph! Unexpected char: %c\n", *in), exit(3);
+				printf(
+						"PARSE ERROR in dimacsToHypergraph! Unexpected char: %c\n",
+						*in), exit(3);
 			}
 		} else if (*in == 'c') {
 			skipLine(in);
@@ -141,11 +144,19 @@ void dimacsToHypergraph(B& in, char* out) {
 
 	}
 	cout << "size of graph=" << graph.size() << endl;
+
+	//writing to file
+	ofstream outfile;
+	outfile.open(out);
+	outfile << vars << " " << clauses << endl;
 	for (int i = 0; i < graph.size(); i++) {
 		for (int j = 0; j < graph[i].size(); j++) {
 			printf("%d ", graph[i][j]);
+			outfile<<graph[i][j]<<" ";
 		}
 		printf("\n");
+		outfile<<endl;
 	}
+	outfile.close();
 }
 #endif /* UTIL_H_ */
