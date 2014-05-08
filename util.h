@@ -85,7 +85,7 @@ static vector<int> readClause(B& in) {
 }
 
 template<class B>
-void dimacsToHypergraph(B& in, char* out) {
+pair<int,int> dimacsToHypergraph(B& in, char* out, vector<vector<int> > &formula) {
 	vector<int> lits; //TODO: initialize lits to size 3
 	vector<vector<int> > graph;
 	int vars = 0;
@@ -127,8 +127,9 @@ void dimacsToHypergraph(B& in, char* out) {
 			cnt++;
 			cout << "reading clauses" << endl;
 			lits = readClause(in);
+			formula.push_back(lits);
 			cout << "size of graph=" << graph.size() << endl;
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < lits.size(); i++) {
 				int idx = lits[i];
 				if (idx < 0) {
 					idx = -1 * idx;
@@ -141,7 +142,6 @@ void dimacsToHypergraph(B& in, char* out) {
 				graph[idx].push_back(cnt);
 			}
 		}
-
 	}
 	cout << "size of graph=" << graph.size() << endl;
 
@@ -158,5 +158,31 @@ void dimacsToHypergraph(B& in, char* out) {
 		outfile<<endl;
 	}
 	outfile.close();
+	return make_pair(vars, clauses);
 }
+
+char* readFile(char* fileName) {
+	char* data;
+	cout<<"Filename is"<<fileName<<endl;
+	FILE * f = fopen(fileName, "rb");
+	if (f) {
+		fseek(f, 0, SEEK_END);
+		int length = ftell(f);
+		fseek(f, 0, SEEK_SET);
+		data = (char*) malloc(length);
+		if (data) {
+			fread(data, 1, length - 1, f);
+			data[length - 1] = '\0';
+		} else {
+			cout << "Fatal Error: Could not allocate memory buffer of length "
+					<< length << endl;
+		}
+		fclose(f);
+	} else {
+		cout << "Fatal Error: Could not read from file "<<fileName<<endl;
+	}
+	cout<<"contents of file="<<data<<endl;
+	return data;
+}
+
 #endif /* UTIL_H_ */
